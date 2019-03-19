@@ -21,15 +21,15 @@ namespace LEEBEN {
 	private:
 		int _AnchorNum;
 		Eigen::Vector3d* _Anchors;
-		double* _AnchorsBlunders;//»ùÕ¾µÄÏµÍ³Îó²î
-		std::map<std::string,Eigen::Vector3d>  _TagPos;//²»½ö°üÀ¨±êÇ©µÄ¶şÎ¬×ø±ê£¬µÚÈı¸ö±íÊ¾ÖĞĞÄ»ùÕ¾µ½±êÇ©µÄ¾àÀër1£¬µ¥Î»cm
+		double* _AnchorsBlunders;//åŸºç«™çš„ç³»ç»Ÿè¯¯å·®
+		std::map<std::string,Eigen::Vector3d>  _TagPos;//ä¸ä»…åŒ…æ‹¬æ ‡ç­¾çš„äºŒç»´åæ ‡ï¼Œç¬¬ä¸‰ä¸ªè¡¨ç¤ºä¸­å¿ƒåŸºç«™åˆ°æ ‡ç­¾çš„è·ç¦»r1ï¼Œå•ä½cm
 //		std::vector<std::string> _TagIDs;//
-		std::map<std::string, std::list<double>* > _deltaRs;//´æ·Å¸÷±êÇ©µÃµ½µÄdeltaR
-		std::ofstream _LOC_record;//ÓÃÓÚ¼ÇÂ¼¾­µächan½âËã½á¹ûµÄÎÄ¼şÁ÷
-		std::ofstream _LOC_record_LS_TLS;//ÓÃÓÚ¼ÇÂ¼»ìºÏ×îĞ¡¶ş³ËchanµÄ½á¹ûÎÄ¼şÁ÷
-		std::ofstream _LOC_record_pro;//ÓÃÓÚ¼ÇÂ¼¸Ä½øChanËã·¨½á¹ûµÄÎÄ¼şÁ÷
-		std::ofstream _Filtered_Tdoa;//ÓÃÓÚ¼ÇÂ¼´Ö²îÌŞ³ıºóµÄTDOA
-		std::string _log;//ÕâÀïÊÇÈÕÖ¾ÎÄ¼şµÄÎÄ¼şÃû£¬´æ·ÅÏµÍ³Îó²î£¬ÔÚ³ÌĞò½áÊøºó½«ĞÂÏµÍ³Îó²î±£´æ
+		std::map<std::string, std::list<double>* > _deltaRs;//å­˜æ”¾å„æ ‡ç­¾å¾—åˆ°çš„deltaR
+		std::ofstream _LOC_record;//ç”¨äºè®°å½•ç»å…¸chanè§£ç®—ç»“æœçš„æ–‡ä»¶æµ
+		std::ofstream _LOC_record_LS_TLS;//ç”¨äºè®°å½•æ··åˆæœ€å°äºŒä¹˜chançš„ç»“æœæ–‡ä»¶æµ
+		std::ofstream _LOC_record_pro;//ç”¨äºè®°å½•æ”¹è¿›Chanç®—æ³•ç»“æœçš„æ–‡ä»¶æµ
+		std::ofstream _Filtered_Tdoa;//ç”¨äºè®°å½•ç²—å·®å‰”é™¤åçš„TDOA
+		std::string _log;//è¿™é‡Œæ˜¯æ—¥å¿—æ–‡ä»¶çš„æ–‡ä»¶åï¼Œå­˜æ”¾ç³»ç»Ÿè¯¯å·®ï¼Œåœ¨ç¨‹åºç»“æŸåå°†æ–°ç³»ç»Ÿè¯¯å·®ä¿å­˜
 		class Soket_Handle {
 		public:
 			SOCKET sclient;
@@ -42,100 +42,102 @@ namespace LEEBEN {
 		};
 		Soket_Handle _sochl;
 		char _buffer[1024];
-		bool _receiveOn;//½ÓÊÕµÄ¿ª¹Ø
+		bool _receiveOn;//æ¥æ”¶çš„å¼€å…³
 
-		//¿ªÊ¼½âËãTDOA
+		//å¼€å§‹è§£ç®—TDOA
 		friend void solve_start(UWB& uwb);
 
-		//×ÜµÄ¼ÆËãÎ»ÖÃ£¬¼ÈÓĞ¿ØÖÆÌ¨Êä³ö£¬Ò²ÓĞÎÄ¼şÊä³ö,¼ÈÓĞchanÖ±½ÓµÃ³öµÄ¹ÀÖµ½á¹û£¬Ò²ÓĞ
+		//æ€»çš„è®¡ç®—ä½ç½®ï¼Œæ—¢æœ‰æ§åˆ¶å°è¾“å‡ºï¼Œä¹Ÿæœ‰æ–‡ä»¶è¾“å‡º,æ—¢æœ‰chanç›´æ¥å¾—å‡ºçš„ä¼°å€¼ç»“æœï¼Œä¹Ÿæœ‰
 		friend bool GetLoc(UWB& u, const std::string&id,std::vector<double>& deltaR,double timestamp,std::vector<double>& Q);
 
-		//¾­µäChanËã·¨
+		//ç»å…¸Chanç®—æ³•
 		friend Eigen::Vector3d chan(UWB& u, std::vector<double>& deltaR,std::vector<double>& Q);
 
-		//¸Ä½øchanËã·¨,ĞèÒª¸øÈë³õÖµ
+		//æ”¹è¿›chanç®—æ³•,éœ€è¦ç»™å…¥åˆå€¼
 		friend void chan_pro(UWB& u, Eigen::Vector3d& ,std::vector<double>& deltaR,std::vector<double>& Q);
 
-		//×îĞ¡¶ş³Ëµü´ú
+		//æœ€å°äºŒä¹˜è¿­ä»£
 		//friend bool MS(UWB& u, std::vector<double>*deltaR,std::vector<double>& Q);
 		
 	public:
 		UWB();
-		//³õÊ¼»¯»ùÕ¾£¬¸øÈëÊıÁ¿ºÍ×ø±ê¡¢»ùÕ¾ÏµÍ³Îó²î£»
+		//åˆå§‹åŒ–åŸºç«™ï¼Œç»™å…¥æ•°é‡å’Œåæ ‡ã€åŸºç«™ç³»ç»Ÿè¯¯å·®ï¼›
 		void Initialize_Anchors(int num, const Eigen::Vector3d* points);
 
-		////³õÊ¼»¯±êÇ©£¬¸øÈë±êÇ©idÓÃÓÚÉ¸Ñ¡
+		////åˆå§‹åŒ–æ ‡ç­¾ï¼Œç»™å…¥æ ‡ç­¾idç”¨äºç­›é€‰
 		//void Initialize_Tag(const char* id);
 
-		//½«´Ö²îÌŞ³ı½á¹ûĞ´µ½ÎÄ¼şÖĞÈ¥
+		//å°†ç²—å·®å‰”é™¤ç»“æœå†™åˆ°æ–‡ä»¶ä¸­å»
 		void Filter2file(const std::string& id,std::vector<double>& R, std::vector<double>& Q);
 
-		//°ÑÊı¾İ´ÓtxtÖĞ¶ÁÈë£¬²¢½øĞĞÊä³öºÍ½âËã
+		//æŠŠæ•°æ®ä»txtä¸­è¯»å…¥ï¼Œå¹¶è¿›è¡Œè¾“å‡ºå’Œè§£ç®—
 		void fromfile(const char* filename,const char* tagid);
 		
 
-		//ÏÔÊ¾¿ØÖÆ²Ëµ¥
+		//æ˜¾ç¤ºæ§åˆ¶èœå•
 		void show_menu();
 
 
-		//ÊµÊ±¶¨Î»
+		//å®æ—¶å®šä½
 		void realtime();
 
-		//Ïò55510·¢ËÍTDOA¹ã²¥ÇëÇó
+		//å‘55510å‘é€TDOAå¹¿æ’­è¯·æ±‚
 		bool broadcast_begin();
 
-		//Í£Ö¹55510µÄTDOA¹ã²¥
+		//åœæ­¢55510çš„TDOAå¹¿æ’­
 		int broadcast_stop();
 
-		//¸Ä±ä½ÓÊÕTDOAµÄ¿ª¹Ø
+		//æ”¹å˜æ¥æ”¶TDOAçš„å¼€å…³
 		bool switch_receive();
 
-		//ÊäÈëĞ£×¼±êÇ©ºÍÎ»ÖÃ£¬¶ÔÏµÍ³Îó²î½øĞĞĞ£Õı
+		//è¾“å…¥æ ¡å‡†æ ‡ç­¾å’Œä½ç½®ï¼Œå¯¹ç³»ç»Ÿè¯¯å·®è¿›è¡Œæ ¡æ­£
 		void calibrate(const std::string& tagid, const Eigen::Vector3d& pos);
 
-		//Èç¹ûÑ¡ÔñÁËÊµÊ±½âËã£¬ÄÇÃ´¿ØÖÆ²Ëµ¥Ó¦¸ÃÎª
+		//å¦‚æœé€‰æ‹©äº†å®æ—¶è§£ç®—ï¼Œé‚£ä¹ˆæ§åˆ¶èœå•åº”è¯¥ä¸º
 		void show_menu2();
 
 		~UWB();
 	private:
-		//¸øÈëÒ»ĞĞÎÄ±¾£¬push½øÈëdeltaR
+		//ç»™å…¥ä¸€è¡Œæ–‡æœ¬ï¼Œpushè¿›å…¥deltaR
 		void push(std::istringstream& iss,const std::string&);
 
-		//»ñµÃÊ±¼ä\±êÇ©IDºÍTDOA¸öÊı£¬ÈıÕß×÷ÎªÉ¸Ñ¡Ìõ¼ş,·µ»ØµÄÊÇTDOA¸öÊı
+		//è·å¾—æ—¶é—´\æ ‡ç­¾IDå’ŒTDOAä¸ªæ•°ï¼Œä¸‰è€…ä½œä¸ºç­›é€‰æ¡ä»¶,è¿”å›çš„æ˜¯TDOAä¸ªæ•°
 		int get_sift(std::istringstream& iss, std::string& id, double& time);
 
-		//ÌŞ³ı´Ö²î£¬·µ»Ønum-1×éÊı¾İ£¬Ã¿Ò»×é´ú±íÈ¥µô´Ö²îÖ®ºóµÄÊ£Óà¾àÀë²îÊı¾İ£¬¸øÈëµÄÊÇÎ´ÌŞ³ı´Ö²îµÄ¾àÀë²îÊı¾İ
+		//å‰”é™¤ç²—å·®ï¼Œè¿”å›num-1ç»„æ•°æ®ï¼Œæ¯ä¸€ç»„ä»£è¡¨å»æ‰ç²—å·®ä¹‹åçš„å‰©ä½™è·ç¦»å·®æ•°æ®ï¼Œç»™å…¥çš„æ˜¯æœªå‰”é™¤ç²—å·®çš„è·ç¦»å·®æ•°æ®
 		void Gross_Free(std::string&);
 
-		//¸øÈëÌŞ³ı´Ö²îµÄÃ¿×éÊı¾İ£¬·µ»ØAnchorNum-1¸ö¾ùÖµÊı×Ö£¬ÒÔ¼°¾ùÖµµÄ·½²î
+		//ç»™å…¥å‰”é™¤ç²—å·®çš„æ¯ç»„æ•°æ®ï¼Œè¿”å›AnchorNum-1ä¸ªå‡å€¼æ•°å­—ï¼Œä»¥åŠå‡å€¼çš„æ–¹å·®
 		void Filter_Result(const std::string&, std::vector<double>& R, std::vector<double>& Q);
 
-		//Ê±¼äµÄ×ª»»£¬µÃµ½Ò»¸öÈıÎ»Ğ¡Êı
+		//æ—¶é—´çš„è½¬æ¢ï¼Œå¾—åˆ°ä¸€ä¸ªä¸‰ä½å°æ•°
 		double StringToDatetime(std::string str);
 
-		//double ×ªÈÕÆÚ
+		//double è½¬æ—¥æœŸ
 		std::string LEEBEN::UWB::Double2Datetime(time_t timestamp);
 
-		//ÊÍ·Åmap<string,list*>µÄÄÚ´æ
+		//é‡Šæ”¾map<string,list*>çš„å†…å­˜
 		void release_deltaRs();
 
-		//´ÓÎÄ¼şÖĞ¶ÁÈ¡ÏµÍ³Îó²î
+		//ä»æ–‡ä»¶ä¸­è¯»å–ç³»ç»Ÿè¯¯å·®
 		void blunderfromfile();
 
 		
 	};
 	
-	//ÆÕÍ¨×îĞ¡¶ş³Ë·¨£¬ÏßĞÔ
+	//æ™®é€šæœ€å°äºŒä¹˜æ³•ï¼Œçº¿æ€§
 	Eigen::VectorXd Normal_LS(const Eigen::MatrixXd& A, const Eigen::MatrixXd& b,const Eigen::MatrixXd& P,Eigen::MatrixXd& Q);
 
-	//ÕûÌå×îĞ¡¶ş³Ë·¨
+	//æ•´ä½“æœ€å°äºŒä¹˜æ³•
 	Eigen::VectorXd Total_LS(const Eigen::MatrixXd& A, const Eigen::MatrixXd& b);
 
-	//»ìºÏ×îĞ¡¶ş³Ë·¨
+	//æ··åˆæœ€å°äºŒä¹˜æ³•
 	Eigen::VectorXd LS_TLS(const Eigen::MatrixXd& A1,const Eigen::MatrixXd& A2, const Eigen::MatrixXd& b);
 
-	//QR·Ö½â
+	//QRåˆ†è§£
 	void Maqr(const Eigen::MatrixXd& A, Eigen::MatrixXd& Q, Eigen::MatrixXd& R);
 }
 
+//this is the trial of github usage.
+//let me check what changes have happened.
 
